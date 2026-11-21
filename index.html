@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Known Universe Explorer</title>
+    <link rel="stylesheet" href="/src/ui/styles.css" />
+  </head>
+  <body>
+    <!-- Unit IV: the single WebGL viewport. All HUD/menu layers are HTML on top. -->
+    <canvas id="viewport"></canvas>
+
+    <!-- HTML overlay root: HUD, lore cards, X-Ray panel and Mentat chat mount here. -->
+    <div id="overlay">
+      <div id="boot-message">
+        <h1>Known Universe Explorer</h1>
+        <p id="boot-status">Loading…</p>
+      </div>
+      <div id="controls-hint" hidden>
+        <strong>W/S</strong> thrust &middot; <strong>Space</strong> brake &middot;
+        <strong>Shift</strong> boost &middot; <strong>A/D</strong> yaw &middot;
+        <strong>&uarr;/&darr;</strong> pitch &middot; <strong>Q/E</strong> roll &middot;
+        <strong>Click</strong> mouse flight &middot; <strong>Esc</strong> release mouse &middot;
+        <strong>L</strong> land / take off &middot; <strong>X</strong> X-Ray &middot; <strong>M</strong> Mentat
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

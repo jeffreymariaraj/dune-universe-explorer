@@ -1,0 +1,222 @@
+{
+  "_note": "Orbit/physical values are game-scaled, not real. Lore is original wording; expand trivia yourself. Put this file at src/data/planets.json.",
+  "system": {
+    "name": "The Known Universe (compressed)",
+    "seed": 10191,
+    "asteroidBelt": {
+      "_note": "Static belt between Giedi Prime's aphelion (~10,260) and Kaitain's perihelion (~12,250).",
+      "count": 2000,
+      "innerRadius": 10950,
+      "outerRadius": 11550,
+      "thickness": 90,
+      "inclinationDeg": 3,
+      "minSize": 4,
+      "maxSize": 45,
+      "seed": 10191
+    }
+  },
+  "bodies": [
+    {
+      "id": "canopus",
+      "name": "Canopus",
+      "type": "star",
+      "parent": null,
+      "physical": { "radius": 600, "color": "#fff1d6", "mass": 1000 },
+      "lore": {
+        "title": "The Sun of Arrakis",
+        "summary": "The star that Arrakis orbits. In the game it anchors the whole system.",
+        "trivia": ["In the books, Arrakis is the third planet of this star."]
+      }
+    },
+    {
+      "id": "arrakis",
+      "name": "Arrakis",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 4200, "e": 0.03, "incDeg": 2, "periodSec": 600, "phase": 0.1 },
+      "physical": { "radius": 220, "axialTiltDeg": 12, "dayLengthSec": 90, "mass": 10.0 },
+      "generation": {
+        "seed": 7041,
+        "noise": { "octaves": 6, "frequency": 1.4, "amplitude": 0.06, "ridged": false },
+        "biome": "desert",
+        "palette": ["#8a5a2b", "#c9914f", "#e8c27a"],
+        "atmosphere": { "color": "#e6a15c", "density": 0.6 },
+        "nightLights": false
+      },
+      "pointsOfInterest": [
+        { "id": "abandoned-harvester", "name": "Abandoned Harvester", "kind": "wreck", "description": "A spice harvester half swallowed by the sand. Its crew left in a hurry when something large moved beneath them." },
+        { "id": "thumper", "name": "Thumper", "kind": "beacon", "description": "A spring-driven stake beating the sand in a steady rhythm. Someone planted it to lure a sandworm away from somewhere else." },
+        { "id": "sietch-door", "name": "Sietch Doorway", "kind": "ruin", "description": "A seal cut into the rock, hiding the way into a cave settlement. Whoever lives inside does not want visitors." }
+      ],
+      "lore": {
+        "title": "The Desert Planet",
+        "summary": "A world of endless sand with almost no surface water. It is the only known source of the spice, which makes it the most valuable planet in the empire.",
+        "trivia": [
+          "Giant sandworms roam beneath the dunes and are drawn to rhythmic vibration.",
+          "Its native desert people, the Fremen, survive by recycling nearly every drop of water.",
+          "Control of Arrakis means control of the spice trade, so great houses fight over it."
+        ]
+      }
+    },
+    {
+      "id": "caladan",
+      "name": "Caladan",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 6800, "e": 0.05, "incDeg": 4, "periodSec": 900, "phase": 1.8 },
+      "physical": { "radius": 240, "axialTiltDeg": 20, "dayLengthSec": 110, "mass": 11.0 },
+      "generation": {
+        "seed": 2231,
+        "noise": { "octaves": 5, "frequency": 1.1, "amplitude": 0.04, "ridged": false },
+        "biome": "ocean",
+        "palette": ["#0b3954", "#1f7a8c", "#7fb069"],
+        "atmosphere": { "color": "#8ecae6", "density": 0.8 },
+        "nightLights": true
+      },
+      "pointsOfInterest": [
+        { "id": "fishing-buoy", "name": "Fishing Buoy", "kind": "beacon", "description": "A marker for the fishing fleets, still blinking long after the boats moved on." },
+        { "id": "watchtower", "name": "Sea-cliff Watchtower", "kind": "ruin", "description": "A weathered stone tower from the long Atreides rule, built to watch for storms and ships." }
+      ],
+      "lore": {
+        "title": "The Ocean World",
+        "summary": "A green, wet planet of seas and cliffs. It was the ancestral home of House Atreides before they moved to Arrakis.",
+        "trivia": [
+          "House Atreides ruled this sea world for many generations before the Emperor ordered them to take over Arrakis.",
+          "Its wealth came from the sea and from pundi rice grown in flooded paddies along the coasts.",
+          "Duke Leto's father, the Old Duke, was killed in Caladan's bullring by the bull he was fighting."
+        ]
+      }
+    },
+    {
+      "id": "giedi-prime",
+      "name": "Giedi Prime",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 9500, "e": 0.08, "incDeg": 6, "periodSec": 1300, "phase": 3.0 },
+      "physical": { "radius": 200, "axialTiltDeg": 5, "dayLengthSec": 140, "mass": 9.0 },
+      "generation": {
+        "seed": 6660,
+        "noise": { "octaves": 7, "frequency": 2.2, "amplitude": 0.08, "ridged": true },
+        "biome": "industrial",
+        "palette": ["#111111", "#3a3a3a", "#7a2e2e"],
+        "atmosphere": { "color": "#5c5c5c", "density": 0.5 },
+        "nightLights": true
+      },
+      "pointsOfInterest": [
+        { "id": "slag-obelisk", "name": "Slag Obelisk", "kind": "monolith", "description": "A column of cast industrial waste, raised as a monument to production quotas." },
+        { "id": "gutted-thopter", "name": "Gutted Ornithopter", "kind": "wreck", "description": "A Harkonnen patrol craft stripped for parts. Nothing on this world is allowed to go to waste." },
+        { "id": "fighting-pit", "name": "Fighting Pit", "kind": "ruin", "description": "The remains of an arena where captives were made to fight for an audience." }
+      ],
+      "lore": {
+        "title": "The Harkonnen Homeworld",
+        "summary": "A dark, heavily industrialised world ruled by House Harkonnen, the bitter rivals of House Atreides.",
+        "trivia": [
+          "Baron Vladimir Harkonnen rules it from a fortress city and plots the ruin of House Atreides.",
+          "Its people live under fear, slavery and surveillance; the planet's industry runs on forced labour.",
+          "The Harkonnens controlled Arrakis and its spice harvest for decades before the Atreides were given the fief."
+        ]
+      }
+    },
+    {
+      "id": "kaitain",
+      "name": "Kaitain",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 12500, "e": 0.02, "incDeg": 1, "periodSec": 1700, "phase": 4.4 },
+      "physical": { "radius": 230, "axialTiltDeg": 8, "dayLengthSec": 100, "mass": 10.0 },
+      "generation": {
+        "seed": 1010,
+        "noise": { "octaves": 5, "frequency": 1.0, "amplitude": 0.03, "ridged": false },
+        "biome": "temperate",
+        "palette": ["#2d6a4f", "#95d5b2", "#f4e285"],
+        "atmosphere": { "color": "#bde0fe", "density": 0.7 },
+        "nightLights": true
+      },
+      "pointsOfInterest": [
+        { "id": "imperial-obelisk", "name": "Imperial Obelisk", "kind": "monolith", "description": "A polished marker bearing the Corrino lion, set where the Emperor's gardens begin." },
+        { "id": "colonnade", "name": "Garden Colonnade", "kind": "ruin", "description": "Columns from an older palace wing, kept as a picturesque ruin by the court's gardeners." }
+      ],
+      "lore": {
+        "title": "The Imperial Capital",
+        "summary": "Seat of the Padishah Emperor and House Corrino, the political centre of the empire.",
+        "trivia": [
+          "The Padishah Emperor Shaddam IV of House Corrino holds court here.",
+          "Its gardens, palaces and carefully managed climate are a showcase of imperial wealth.",
+          "Princess Irulan, the Emperor's eldest daughter and later a historian of these events, was raised at this court."
+        ]
+      }
+    },
+    {
+      "id": "salusa-secundus",
+      "name": "Salusa Secundus",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 15500, "e": 0.1, "incDeg": 9, "periodSec": 2100, "phase": 5.5 },
+      "physical": { "radius": 190, "axialTiltDeg": 30, "dayLengthSec": 160, "mass": 8.0 },
+      "generation": {
+        "seed": 4404,
+        "noise": { "octaves": 7, "frequency": 2.6, "amplitude": 0.09, "ridged": true },
+        "biome": "wasteland",
+        "palette": ["#3d2b1f", "#6b4f3a", "#a68a64"],
+        "atmosphere": { "color": "#8d7966", "density": 0.4 },
+        "nightLights": false
+      },
+      "pointsOfInterest": [
+        { "id": "prison-camp", "name": "Prison Camp Remains", "kind": "ruin", "description": "Broken walls of a labour camp. Those who survive places like this are taken to become the Emperor's soldiers." },
+        { "id": "crashed-transport", "name": "Crashed Transport", "kind": "wreck", "description": "A prisoner transport that never reached its landing field." },
+        { "id": "scorched-spire", "name": "Scorched Spire", "kind": "spire", "description": "Rock fused to glass by the ancient attack that ruined this world." }
+      ],
+      "lore": {
+        "title": "The Prison Planet",
+        "summary": "A harsh, devastated world used as the empire's prison. Its brutal conditions forged the emperor's elite soldiers.",
+        "trivia": [
+          "It was once the imperial capital, until a devastating attack long ago left it a ruined, hostile world.",
+          "The Emperor's feared Sardaukar soldiers are recruited from the survivors of its prison camps.",
+          "How the Sardaukar are trained here is one of House Corrino's most closely guarded secrets."
+        ]
+      }
+    },
+    {
+      "id": "ix",
+      "name": "Ix",
+      "type": "planet",
+      "parent": "canopus",
+      "orbit": { "a": 18500, "e": 0.04, "incDeg": 3, "periodSec": 2500, "phase": 0.9 },
+      "physical": { "radius": 210, "axialTiltDeg": 15, "dayLengthSec": 120, "mass": 9.5 },
+      "generation": {
+        "seed": 9090,
+        "noise": { "octaves": 6, "frequency": 1.8, "amplitude": 0.05, "ridged": true },
+        "biome": "ice",
+        "palette": ["#cad2c5", "#84a98c", "#e0fbfc"],
+        "atmosphere": { "color": "#cfe8ff", "density": 0.5 },
+        "nightLights": true
+      },
+      "pointsOfInterest": [
+        { "id": "shaft-cap", "name": "Sealed Shaft Cap", "kind": "monolith", "description": "A plain metal hatch flush with the ground. Somewhere beneath it, a city works in secret." },
+        { "id": "survey-beacon", "name": "Survey Beacon", "kind": "beacon", "description": "An Ixian marker broadcasting on a band no other house can read." }
+      ],
+      "lore": {
+        "title": "The Machine World",
+        "summary": "A planet famous for its advanced technology, with much of its industry hidden underground.",
+        "trivia": [
+          "Ixian engineers build machines that go right up to the limit set by the old ban on thinking machines.",
+          "Most of its cities and factories are hidden underground, so the surface looks almost untouched.",
+          "The Great Houses buy Ixian technology even while they distrust where its inventions might lead."
+        ]
+      }
+    },
+    {
+      "id": "anomaly",
+      "name": "The Silent Maw",
+      "type": "blackhole",
+      "parent": "canopus",
+      "orbit": { "a": 26000, "e": 0.0, "incDeg": 12, "periodSec": 6000, "phase": 2.2 },
+      "physical": { "schwarzschildRadius": 120, "diskInner": 300, "diskOuter": 1100 },
+      "lore": {
+        "title": "Uncharted Anomaly",
+        "summary": "Not part of Dune canon. An original addition: a black hole at the edge of the system whose gravity bends starlight around it.",
+        "trivia": ["Light passing close to it is bent so strongly that stars behind it appear as a ring."]
+      }
+    }
+  ]
+}

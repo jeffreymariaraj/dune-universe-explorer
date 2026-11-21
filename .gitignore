@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+
+# Secrets: the LLM key lives here and must never be committed.
+# (.env.txt too: macOS TextEdit likes to add .txt when saving server/.env.)
+server/.env
+server/.env.txt
+.env
+.env.*
+!.env.example
+!server/.env.example
+
+# AI-assistant files (Claude Code project instructions and local settings)
+CLAUDE.md
+.claude/
+CLAUDE.local.md
+
+# Large binary assets you download yourself (see public/*/README.md).
+# Comment these lines out if you would rather commit them.
+public/skybox/*.png
+public/models/*.glb
+public/audio/*.mp3

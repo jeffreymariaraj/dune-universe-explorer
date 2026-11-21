@@ -1,0 +1,671 @@
+/* HUD and menus are a plain HTML/CSS overlay above the single WebGL canvas
+   (SYSTEM_DESIGN.md section 2) — faster to build and easier to make look good
+   than in-canvas UI. */
+
+:root {
+  --sand: #e8c27a;
+  --sand-dim: #c9914f;
+  --ink: #05060b;
+  --panel: rgba(8, 10, 16, 0.72);
+  --panel-edge: rgba(232, 194, 122, 0.25);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--sand);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+#viewport {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  /* The canvas owns the pointer: clicking it requests pointer lock. */
+  cursor: crosshair;
+}
+
+/* Overlay root. It must not eat clicks meant for the canvas; individual panels
+   re-enable pointer events for themselves. */
+#overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  /* The boot card centres itself with margin:auto; the controls hint then sits
+     at the bottom edge. */
+  justify-content: flex-end;
+  align-items: center;
+}
+
+#boot-message {
+  margin: auto;
+  text-align: center;
+  padding: 1.5rem 2rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+#boot-message h1 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.1rem, 3vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+#boot-message p {
+  margin: 0;
+  color: var(--sand-dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+#controls-hint {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.68rem;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  text-align: center;
+  /* Narrow enough to clear the lil-gui panel on the right. */
+  max-width: min(84vw, 44rem);
+  color: var(--sand-dim);
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 999px;
+}
+
+#controls-hint strong {
+  color: var(--sand);
+  font-weight: 600;
+}
+
+#controls-hint[hidden] {
+  display: none;
+}
+
+/* Keep lil-gui clear of the Stats panel in the top-left. */
+.lil-gui.root {
+  --background-color: rgba(8, 10, 16, 0.86);
+  --text-color: #e8c27a;
+  --title-background-color: rgba(201, 145, 79, 0.22);
+  --widget-color: rgba(232, 194, 122, 0.16);
+  z-index: 10;
+}
+
+/* ------------------------------------------------------------------ HUD (Day 5) */
+
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-panel {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+.hud-flight {
+  left: 1rem;
+  bottom: 1rem;
+  min-width: 15rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.72rem;
+}
+
+.hud-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  line-height: 1.75;
+}
+
+.hud-label {
+  width: 4.6rem;
+  color: var(--sand-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+
+.hud-value {
+  color: var(--sand);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-small {
+  font-size: 0.72rem;
+}
+
+.hud-name {
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.hud-unit {
+  color: var(--sand-dim);
+  font-size: 0.62rem;
+}
+
+.hud-bar {
+  position: relative;
+  flex: 1;
+  height: 0.45rem;
+  align-self: center;
+  border-radius: 999px;
+  background: rgba(232, 194, 122, 0.12);
+  overflow: hidden;
+}
+
+.hud-bar-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: #8fd18b;
+  transition: transform 0.25s ease-out, background-color 0.25s;
+}
+
+.hud-bar-fill[data-level="warn"] { background: #e8c27a; }
+.hud-bar-fill[data-level="bad"] { background: #ff5a3c; }
+
+.hud-warning {
+  margin-top: 0.35rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  color: #ffd2c8;
+  background: rgba(255, 90, 60, 0.22);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  animation: hud-pulse 1s ease-in-out infinite alternate;
+}
+
+.hud-warning[hidden] { display: none; }
+
+@keyframes hud-pulse {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+/* A brief red flash of the whole HUD on impact. */
+.hud-hit .hud-flight {
+  animation: hud-hit 0.45s ease-out;
+}
+
+@keyframes hud-hit {
+  from { box-shadow: 0 0 0 2px rgba(255, 90, 60, 0.9), 0 0 30px rgba(255, 90, 60, 0.6); }
+  to { box-shadow: 0 0 0 0 rgba(255, 90, 60, 0); }
+}
+
+.hud-reticle {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.55;
+}
+
+.hud-reticle line,
+.hud-reticle .reticle-ring {
+  stroke: var(--sand);
+  stroke-width: 1.2;
+  fill: none;
+}
+
+.hud-radar {
+  /* Beside the flight panel: the right-hand side belongs to lil-gui. */
+  left: 17rem;
+  bottom: 1rem;
+  padding: 4px;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.hud-radar svg { display: block; }
+.radar-edge { fill: rgba(232, 194, 122, 0.04); stroke: rgba(232, 194, 122, 0.45); stroke-width: 1.2; }
+.radar-ring { fill: none; stroke: rgba(232, 194, 122, 0.14); stroke-width: 1; }
+.radar-ship { fill: #7fd4ff; }
+.radar-blip { fill: var(--sand-dim); }
+.radar-star { fill: #fff1d6; }
+.radar-blackhole { fill: #000; stroke: #9b7cff; stroke-width: 1.4; }
+.radar-nearest { fill: var(--sand); stroke: #fff; stroke-width: 0.8; }
+.radar-clipped { fill: rgba(232, 194, 122, 0.55); }
+.radar-text { fill: var(--sand); font-size: 8.5px; letter-spacing: 0.04em; }
+.radar-label { fill: var(--sand-dim); font-size: 8px; }
+
+/* ------------------------------------------------------------- lore card (Day 5) */
+
+.lore-card {
+  position: fixed;
+  left: 1rem;
+  top: 4.5rem; /* below the Stats panel */
+  width: min(22rem, 80vw);
+  padding: 0.9rem 1rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-left: 3px solid var(--sand);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  transform: translateX(calc(-100% - 2rem));
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.45s;
+}
+
+.lore-card.lore-open {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.lore-kicker {
+  color: var(--sand-dim);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.lore-name {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lore-title {
+  color: var(--sand-dim);
+  font-size: 0.75rem;
+  font-style: italic;
+  margin-bottom: 0.55rem;
+}
+
+.lore-summary {
+  margin: 0 0 0.5rem;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: #f1dfb8;
+}
+
+.lore-trivia {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--sand-dim);
+}
+
+.lore-trivia li + li { margin-top: 0.25rem; }
+
+/* Day 5: the HUD now sits along the bottom edge, so the controls hint shows for
+   the first few seconds of flight and then gets out of the way. */
+#controls-hint:not([hidden]) {
+  animation: hint-fade 0.8s ease-in 14s forwards;
+}
+
+@keyframes hint-fade {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* ---------------------------------------------------- warp fade and surface (Day 7) */
+
+.screen-fade {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition-property: opacity;
+  transition-timing-function: ease-in-out;
+  z-index: 20; /* above the HUD and lil-gui during the jump */
+}
+
+.hud-land {
+  margin-top: 0.35rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  color: #d7f4ff;
+  background: rgba(127, 212, 255, 0.16);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.hud-land[hidden] { display: none; }
+
+.hud-surface {
+  position: fixed;
+  left: 50%;
+  top: 1rem;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.hud-surface strong {
+  display: block;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.hud [hidden] { display: none; }
+
+.hud-surface span { display: block; }
+.hud-surface-status {
+  margin-top: 0.2rem;
+  color: var(--sand);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------- Mentat (Day 9) */
+
+.mentat {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  bottom: 1rem;
+  width: min(26rem, 92vw);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  background: rgba(6, 8, 12, 0.9);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  z-index: 15; /* above lil-gui */
+  font-size: 0.76rem;
+}
+
+.mentat[hidden] { display: none; }
+
+/* The panel takes lil-gui's place on the right while it is open. */
+body.mentat-open .lil-gui.root { visibility: hidden; }
+
+.mentat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.mentat-title {
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.mentat-status {
+  flex: 1;
+  color: var(--sand-dim);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+}
+
+.mentat-close {
+  background: none;
+  border: none;
+  color: var(--sand);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.mentat-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.6rem 0.8rem;
+}
+
+.mentat-line {
+  margin: 0 0 0.6rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.mentat-pilot { color: #9fd8ff; }
+.mentat-pilot::before { content: '> '; color: var(--sand-dim); }
+.mentat-mentat { color: #f1dfb8; }
+.mentat-note { color: var(--sand-dim); font-size: 0.66rem; }
+.mentat-typing::after { content: '\2589'; animation: mentat-caret 0.9s steps(1) infinite; margin-left: 2px; }
+
+@keyframes mentat-caret {
+  50% { opacity: 0; }
+}
+
+.mentat-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.mentat-prompt { color: var(--sand-dim); }
+
+.mentat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--sand);
+  font: inherit;
+}
+
+/* --------------------------------------------------------- title screen (Day 10) */
+
+body.in-menu #controls-hint,
+body.in-menu .hud,
+body.in-menu .lore-card { display: none; }
+
+.title-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 6vw;
+  pointer-events: none;
+}
+
+.title-screen[hidden] { display: none; }
+
+.title-block {
+  pointer-events: auto;
+  max-width: 30rem;
+}
+
+.title-kicker {
+  color: var(--sand-dim);
+  font-size: 0.66rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.title-name {
+  margin: 0.6rem 0 0.8rem;
+  font-size: clamp(2rem, 5.5vw, 4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 30px rgba(232, 194, 122, 0.35);
+}
+
+.title-sub {
+  margin: 0 0 1.6rem;
+  color: #f1dfb8;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.title-buttons { display: flex; gap: 0.8rem; }
+
+.title-screen button {
+  font: inherit;
+  color: var(--sand);
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+}
+
+.title-screen button:hover { border-color: var(--sand); }
+
+.title-primary {
+  background: rgba(232, 194, 122, 0.18) !important;
+  border-color: var(--sand) !important;
+}
+
+.title-primary span {
+  margin-left: 0.5rem;
+  font-size: 0.62rem;
+  color: var(--sand-dim);
+}
+
+.title-controls {
+  pointer-events: auto;
+  width: min(24rem, 90vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 8, 12, 0.88);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  font-size: 0.72rem;
+}
+
+.title-controls[hidden] { display: none; }
+
+.title-controls-head {
+  padding: 0.6rem 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.title-controls-head span {
+  margin-left: 0.5rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--sand-dim);
+  font-size: 0.64rem;
+}
+
+.title-controls-list { overflow-y: auto; padding: 0.3rem 0.4rem; }
+
+.title-screen .title-binding {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  background: none;
+  letter-spacing: 0.02em;
+}
+
+.title-screen .title-binding:hover { border-color: var(--panel-edge); }
+.title-binding-waiting { border-color: var(--sand) !important; animation: hud-pulse 0.6s infinite alternate; }
+
+.title-binding kbd {
+  font: inherit;
+  padding: 0 0.4rem;
+  border: 1px solid var(--panel-edge);
+  border-radius: 4px;
+  color: #fff;
+}
+
+.title-controls-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-top: 1px solid var(--panel-edge);
+  color: var(--sand-dim);
+}
+
+.title-controls-foot button { padding: 0.35rem 0.6rem; font-size: 0.66rem; }
+
+/* ---------------------------------------------------------------- X-Ray (Day 10) */
+
+body.xray-open .lil-gui.root { visibility: hidden; }
+
+.xray {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  width: 17rem;
+  pointer-events: auto;
+  background: rgba(4, 10, 14, 0.9);
+  border: 1px solid rgba(127, 212, 255, 0.35);
+  border-radius: 10px;
+  color: #cfefff;
+  font-size: 0.7rem;
+  z-index: 14;
+}
+
+.xray[hidden] { display: none; }
+
+.xray-head {
+  padding: 0.5rem 0.75rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(127, 212, 255, 0.25);
+}
+
+.xray-head span { float: right; letter-spacing: 0.04em; text-transform: none; opacity: 0.6; }
+.xray-rows { padding: 0.35rem 0.55rem; }
+
+.xray-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.22rem 0.2rem;
+  cursor: pointer;
+}
+
+.xray-row em, .xray-matrix-head em { margin-left: auto; font-style: normal; opacity: 0.55; font-size: 0.62rem; }
+.xray-disabled { opacity: 0.35; cursor: default; }
+.xray-row input { accent-color: #7fd4ff; }
+
+.xray-matrix-head {
+  display: flex;
+  padding: 0.45rem 0.75rem 0.2rem;
+  border-top: 1px solid rgba(127, 212, 255, 0.25);
+}
+
+.xray-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px 6px;
+  padding: 0.2rem 0.75rem 0.4rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.xray-matrix span:nth-child(n + 13) { opacity: 0.55; } /* the homogeneous row: 0 0 0 1 */
+
+.xray-state {
+  padding: 0.35rem 0.75rem 0.55rem;
+  opacity: 0.8;
+}
