@@ -78,6 +78,31 @@ npm run build      # production build into dist/
 
 ---
 
+## Deploying to Vercel
+
+The game is a static Vite build, and the Mentat proxy runs as one Vercel Edge Function (`api/index.ts`). That function serves the same Hono app as `npm run server`, so local dev and production behave the same.
+
+1. Push the repo to GitHub and **Import** it in Vercel. `vercel.json` already sets the build (`npm run build`, output `dist/`) and routes `/api/*` to the function.
+2. In **Project → Settings → Environment Variables**, add `GROQ_API_KEY` (and optionally `LLM_MODEL`). The key stays on the server.
+3. Deploy. If the music, skybox or ship files are gitignored, they won't be deployed; the game falls back to its generated versions.
+
+### Rate limiting
+
+The Mentat is sized for a handful of players an hour, so its limits are strict (`server/rateLimiter.ts`):
+
+| Limit | Value |
+|---|---|
+| Per visitor (by IP) | 4 questions a minute, 20 an hour |
+| Everyone together | 80 questions an hour |
+| Request size | 16 KB body, 300-character question, last 4 chat turns |
+| Answer size | 320 tokens, at most 3 tool rounds per question |
+
+When a limit is hit, nothing breaks. The Mentat switches to its **offline archive** for that question, answering from `planets.json` and still teleporting you, and tells you roughly when the live link returns.
+
+**Caveat:** the limiter keeps its counts in memory, so the limits apply **per running instance**. At a few visitors an hour Vercel normally keeps a single warm instance, but under heavier load it may start more, each with its own counts. For exact, platform-wide limits, move the counters to a shared store such as Vercel KV or Upstash Redis. As a backstop, also set a spending or usage limit in your Groq console.
+
+---
+
 ## Controls
 
 | Key | In space | On foot |
@@ -112,7 +137,8 @@ Engine (fixed 1/120 s update, interpolated render)
         Surface: TerrainManager (3×3 chunks) · Walker · PointsOfInterest
         each:    PostFX (bloom, lensing / aberration, tone mapping) · XRay
                                                │
-Mentat panel ── fetch /api/mentat (SSE) ──► Hono proxy ── tool-calling loop ──► LLM
+Mentat panel ── fetch /api/mentat (SSE) ──► Hono app (rate-limited) ── tool-calling loop ──► LLM
+                                             local: server/index.ts · Vercel: api/index.ts
 ```
 
 - **TypeScript (strict)**, **Vite**, vanilla **three.js** (no framework, so the matrices stay explicit), **pmndrs/postprocessing**, **Hono**.

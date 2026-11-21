@@ -150,8 +150,13 @@ known-universe/
 │  └─ data/
 │     ├─ planets.json
 │     └─ systemData.ts         # typed, validated loader for planets.json
+├─ api/
+│  └─ index.ts                # Vercel Edge Function wrapping server/app.ts
+├─ vercel.json
 └─ server/
-   ├─ index.ts                # Hono proxy: POST /api/mentat (SSE)
+   ├─ app.ts                  # the Hono app: routes, caps, rate limit, SSE
+   ├─ index.ts                # local server (:8787) for the app
+   ├─ rateLimiter.ts          # per-IP + global sliding-window limits
    ├─ mentatAgent.ts          # streamed tool-calling loop
    ├─ mentatTools.ts          # list_destinations, list_points_of_interest, get_lore, teleport
    └─ .env.example

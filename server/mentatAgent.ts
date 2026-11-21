@@ -25,7 +25,8 @@ export const SYSTEM_PROMPT = [
   'The Silent Maw is an anomaly added for this game; it is not part of Dune canon.',
 ].join(' ');
 
-const MAX_ROUNDS = 4;
+/** Tool rounds per question (each round is one model call). Kept low for the public deploy. */
+const MAX_ROUNDS = 3;
 
 export interface ChatTurn {
   role: 'user' | 'assistant';
@@ -116,7 +117,7 @@ async function streamRound(
       tool_choice: 'auto',
       stream: true,
       temperature: 0.3, // grounded, not creative
-      max_tokens: 400,
+      max_tokens: 320, // caps cost per answer; 2-4 sentences fit easily
     }),
     ...(signal ? { signal } : {}),
   });
